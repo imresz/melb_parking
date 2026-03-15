@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node src/fetchParkingData.js",
-    "zones": "node src/fetchParkingZoneInfo.js"
+    "zones": "node src/fetchParkingZoneInfo.js",
+    "lookup": "node src/fetchParkingZoneInfo.js"
   }
 }
