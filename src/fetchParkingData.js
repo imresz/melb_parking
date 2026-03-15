@@ -19,10 +19,10 @@ async function fetchParkingData() {
 function formatRow(row, index) {
   return {
     row: index + 1,
-    bayId: row.bay_id ?? 'n/a',
+    bayId: row.bay_id ?? row.kerbsideid ?? row.zone_number ?? 'n/a',
     status: row.status_description ?? row.status ?? 'n/a',
-    latitude: row.lat ?? row.latitude ?? 'n/a',
-    longitude: row.lon ?? row.longitude ?? 'n/a',
+    latitude: row.lat ?? row.latitude ?? row.location?.lat ?? 'n/a',
+    longitude: row.lon ?? row.longitude ?? row.location?.lon ?? 'n/a',
     lastUpdated: row.lastupdated ?? row.last_updated ?? 'n/a',
   };
 }
