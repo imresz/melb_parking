@@ -355,6 +355,7 @@ function printLookupSummary(summary) {
       bayId: summary.bayId,
       status: summary.status ?? 'No live sensor status',
       zoneNumber: summary.zoneNumber ?? 'n/a',
+      hasLoadingZone: summary.hasLoadingZone ? 'Yes' : 'No',
       roadSegment: summary.roadSegment ?? 'n/a',
       latitude: summary.latitude ?? 'n/a',
       longitude: summary.longitude ?? 'n/a',
@@ -499,11 +500,19 @@ async function main() {
       const effectiveZoneSigns = zoneSigns.length > 0 ? zoneSigns : fallbackZoneSigns;
       const effectiveZoneNumber =
         liveBay.zoneNumber ?? (fallbackZoneNumbers.length === 1 ? fallbackZoneNumbers[0] : fallbackZoneNumbers.join(', '));
+      const hasLoadingZone = effectiveZoneSigns.some(
+        (row) =>
+          String(row.restriction ?? '')
+            .trim()
+            .toUpperCase()
+            .startsWith('LZ') || String(row.restrictionLabel ?? '').toLowerCase().includes('loading zone'),
+      );
 
       const summary = {
         bayId: liveBay.bayId,
         status: liveBay.status,
         zoneNumber: effectiveZoneNumber,
+        hasLoadingZone,
         roadSegment: locationDetails?.roadsegmentdescription ?? null,
         latitude: locationDetails?.latitude ?? liveBay.latitude,
         longitude: locationDetails?.longitude ?? liveBay.longitude,
@@ -539,6 +548,11 @@ async function main() {
         bayId: legacyMatch.bayId,
         deviceId: legacyMatch.deviceId,
         status: 'No live sensor match',
+        hasLoadingZone: legacyMatch.restrictions.some((row) =>
+          String(row.restriction ?? '').toLowerCase().includes('loading'),
+        )
+          ? 'Yes'
+          : 'No',
       },
     ]);
     printZoneTable(legacyMatch.restrictions, 'Legacy bay restrictions');

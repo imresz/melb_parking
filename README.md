@@ -26,6 +26,7 @@ The lookup script:
 - accepts either a live sensor bay ID with `--bay=<id>` or an address with `--address="..."`
 - returns the live occupancy status when a sensor-backed bay is found
 - joins the bay's `zone_number` to the City of Melbourne parking-zone sign dataset so you can see rules like `1P`, `2P`, `4P`, meter parking, and time windows
+- explicitly flags whether the resolved zone also includes a loading zone
 - includes a friendly text label for common sign codes such as `MP2P` -> `Metered parking 2P` and `LZ30` -> `Loading zone 30 min`
 - prints a grouped plain-English summary before the detailed zone table
 - merges adjacent time windows in that summary when they touch, such as `Mon-Fri 16:00-19:00` plus `Mon-Fri 19:00-22:00` becoming `Mon-Fri 16:00-22:00`
