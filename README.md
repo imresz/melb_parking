@@ -25,6 +25,9 @@ node src/fetchParkingZoneInfo.js --address="200 Bourke Street Melbourne"
 The lookup script:
 - accepts either a live sensor bay ID with `--bay=<id>` or an address with `--address="..."`
 - returns the live occupancy status when a sensor-backed bay is found
+- for address lookups, also returns nearby off-street car parks with distance, type, and capacity
+- warns when the nearest on-street bay is still more than 250 meters from the resolved address
+- prints the resolved geocoded address explicitly before the parking results
 - joins the bay's `zone_number` to the City of Melbourne parking-zone sign dataset so you can see rules like `1P`, `2P`, `4P`, meter parking, and time windows
 - explicitly flags whether the resolved zone also includes a loading zone
 - includes a friendly text label for common sign codes such as `MP2P` -> `Metered parking 2P` and `LZ30` -> `Loading zone 30 min`

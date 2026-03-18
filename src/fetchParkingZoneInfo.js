@@ -8,8 +8,12 @@ const BAY_LOCATIONS_URL =
   'https://data.melbourne.vic.gov.au/api/explore/v2.1/catalog/datasets/on-street-parking-bays/records';
 const SEGMENT_ZONES_URL =
   'https://data.melbourne.vic.gov.au/api/explore/v2.1/catalog/datasets/parking-zones-linked-to-street-segments/records';
+const OFF_STREET_EXPORT_URL =
+  'https://data.melbourne.vic.gov.au/api/explore/v2.1/catalog/datasets/off-street-car-parks-with-capacity-and-type/exports/json';
 const GEOCODER_URL = 'https://nominatim.openstreetmap.org/search';
 const DEFAULT_LIMIT = 20;
+const ADDRESS_MATCH_WARNING_METERS = 250;
+const CITY_OF_MELBOURNE_VIEWBOX = '144.8970,-37.7800,144.9910,-37.8600';
 
 function parseArgs(argv) {
   const args = {
@@ -156,6 +160,29 @@ async function fetchSensorRows() {
     .map(normaliseSensorRow);
 }
 
+function normaliseOffStreetRow(row) {
+  return {
+    address: row.building_address ?? 'n/a',
+    area: row.clue_small_area ?? 'n/a',
+    parkingType: row.parking_type ?? 'n/a',
+    parkingSpaces: row.parking_spaces ?? 'n/a',
+    latitude: row.location?.lat ?? row.latitude ?? null,
+    longitude: row.location?.lon ?? row.longitude ?? null,
+  };
+}
+
+async function fetchOffStreetRows() {
+  const rows = await fetchJson(OFF_STREET_EXPORT_URL, {
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+
+  return rows
+    .filter((row) => (row.location?.lat ?? row.latitude) != null && (row.location?.lon ?? row.longitude) != null)
+    .map(normaliseOffStreetRow);
+}
+
 async function fetchZoneSigns(zoneNumber) {
   if (zoneNumber == null) {
     return [];
@@ -291,20 +318,38 @@ async function fetchLegacyBayRestrictions(bayId) {
 
 async function geocodeAddress(address) {
   const query = address.toLowerCase().includes('melbourne')
-    ? address
+    ? `${address}, Victoria, Australia`
     : `${address}, Melbourne VIC, Australia`;
-  const params = new URLSearchParams({
+  const headers = {
+    Accept: 'application/json',
+    'User-Agent': 'melb_parking/1.0',
+  };
+  const boundedParams = new URLSearchParams({
     format: 'jsonv2',
-    limit: '1',
+    limit: '5',
+    countrycodes: 'au',
+    addressdetails: '1',
+    bounded: '1',
+    viewbox: CITY_OF_MELBOURNE_VIEWBOX,
     q: query,
   });
-  const results = await fetchJson(`${GEOCODER_URL}?${params.toString()}`, {
-    headers: {
-      Accept: 'application/json',
-      'User-Agent': 'melb_parking/1.0',
-    },
+  const boundedResults = await fetchJson(`${GEOCODER_URL}?${boundedParams.toString()}`, {
+    headers,
   });
-  const match = results[0];
+  const fallbackParams = new URLSearchParams({
+    format: 'jsonv2',
+    limit: '5',
+    countrycodes: 'au',
+    addressdetails: '1',
+    q: query,
+  });
+  const fallbackResults =
+    boundedResults.length > 0
+      ? boundedResults
+      : await fetchJson(`${GEOCODER_URL}?${fallbackParams.toString()}`, {
+          headers,
+        });
+  const match = fallbackResults[0];
 
   if (!match) {
     throw new Error(`No geocoding match was returned for "${address}".`);
@@ -349,6 +394,61 @@ function findNearestSensorBay(sensorRows, addressMatch) {
   return nearest;
 }
 
+function findNearestOffStreetParks(offStreetRows, addressMatch, limit) {
+  const target = {
+    lat: addressMatch.latitude,
+    lon: addressMatch.longitude,
+  };
+  const seen = new Set();
+
+  return offStreetRows
+    .map((row) => {
+      const latitude = toNumber(row.latitude);
+      const longitude = toNumber(row.longitude);
+
+      if (latitude == null || longitude == null) {
+        return null;
+      }
+
+      return {
+        ...row,
+        distanceMeters: haversineDistanceMeters(target, {
+          lat: latitude,
+          lon: longitude,
+        }),
+      };
+    })
+    .filter(Boolean)
+    .filter((row) => {
+      const key = `${row.address}|${row.parkingType}|${row.parkingSpaces}`;
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    })
+    .sort((left, right) => left.distanceMeters - right.distanceMeters)
+    .slice(0, limit);
+}
+
+function printResolvedAddress(summary) {
+  if (!summary.resolvedAddress) {
+    return;
+  }
+
+  console.log(`Resolved address: ${summary.resolvedAddress}`);
+
+  if (summary.distanceMeters != null) {
+    console.log(`Distance to nearest on-street bay: ${summary.distanceMeters.toFixed(1)} m`);
+  }
+
+  if (summary.addressMatchWarning) {
+    console.log(`Warning: ${summary.addressMatchWarning}`);
+  }
+}
+
 function printLookupSummary(summary) {
   console.table([
     {
@@ -356,6 +456,7 @@ function printLookupSummary(summary) {
       status: summary.status ?? 'No live sensor status',
       zoneNumber: summary.zoneNumber ?? 'n/a',
       hasLoadingZone: summary.hasLoadingZone ? 'Yes' : 'No',
+      addressMatchWarning: summary.addressMatchWarning ?? 'None',
       roadSegment: summary.roadSegment ?? 'n/a',
       latitude: summary.latitude ?? 'n/a',
       longitude: summary.longitude ?? 'n/a',
@@ -454,6 +555,24 @@ function printZoneTable(zoneRows, heading) {
   console.table(zoneRows);
 }
 
+function printOffStreetTable(rows) {
+  if (!rows || rows.length === 0) {
+    console.log('Nearby off-street parking: no off-street car parks found.');
+    return;
+  }
+
+  console.log('Nearby off-street parking:');
+  console.table(
+    rows.map((row) => ({
+      address: row.address,
+      area: row.area,
+      parkingType: row.parkingType,
+      parkingSpaces: row.parkingSpaces,
+      distanceMeters: row.distanceMeters.toFixed(1),
+    })),
+  );
+}
+
 async function lookupBySensorBay(sensorRows, bayId) {
   return sensorRows.find((row) => row.bayId === String(bayId)) ?? null;
 }
@@ -469,13 +588,16 @@ async function main() {
 
   try {
     const sensorRows = await fetchSensorRows();
+    const offStreetRows = args.address ? await fetchOffStreetRows() : [];
 
     let liveBay = null;
     let geocodedAddress = null;
+    let nearestOffStreetParks = [];
 
     if (args.address) {
       geocodedAddress = await geocodeAddress(args.address);
       liveBay = findNearestSensorBay(sensorRows, geocodedAddress);
+      nearestOffStreetParks = findNearestOffStreetParks(offStreetRows, geocodedAddress, Math.min(args.limit, 5));
 
       if (!liveBay) {
         throw new Error('No nearby live parking bay could be resolved from that address.');
@@ -513,6 +635,10 @@ async function main() {
         status: liveBay.status,
         zoneNumber: effectiveZoneNumber,
         hasLoadingZone,
+        addressMatchWarning:
+          geocodedAddress && liveBay.distanceMeters > ADDRESS_MATCH_WARNING_METERS
+            ? `Nearest on-street bay is ${liveBay.distanceMeters.toFixed(1)} m away from the resolved address`
+            : null,
         roadSegment: locationDetails?.roadsegmentdescription ?? null,
         latitude: locationDetails?.latitude ?? liveBay.latitude,
         longitude: locationDetails?.longitude ?? liveBay.longitude,
@@ -521,6 +647,7 @@ async function main() {
         lastUpdated: liveBay.lastUpdated,
       };
 
+      printResolvedAddress(summary);
       printLookupSummary(summary);
       printZoneTable(
         effectiveZoneSigns.map((row) => ({
@@ -532,6 +659,9 @@ async function main() {
         })),
         'Zone restrictions',
       );
+      if (args.address) {
+        printOffStreetTable(nearestOffStreetParks);
+      }
       return;
     }
 
