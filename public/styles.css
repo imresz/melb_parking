@@ -58,6 +58,9 @@ body {
   right: 12px;
   padding: 14px 16px;
   border-radius: 22px;
+  max-height: min(50vh, 440px);
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .eyebrow {
@@ -85,6 +88,70 @@ body {
 .summary-line {
   font-weight: 700;
   color: var(--ink);
+}
+
+.view-toggle {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 6px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.view-toggle-button {
+  min-height: 40px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+}
+
+.view-toggle-button.is-active {
+  background: #182126;
+  color: #fff;
+}
+
+.time-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.time-control {
+  display: grid;
+  gap: 6px;
+}
+
+.time-control-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.time-select,
+.time-input {
+  min-height: 44px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  padding: 0 14px;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--ink);
+  font: inherit;
+}
+
+.time-select:focus,
+.time-input:focus {
+  outline: 2px solid rgba(11, 110, 243, 0.28);
+  outline-offset: 2px;
 }
 
 .search-form {
@@ -136,6 +203,9 @@ body {
   bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
   padding: 14px;
   border-radius: 24px;
+  max-height: min(34vh, 360px);
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .legend-header h2 {
@@ -160,6 +230,21 @@ body {
   grid-template-columns: 14px 1fr;
   gap: 10px;
   align-items: start;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.64);
+  color: var(--ink);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.legend-key-item.is-active {
+  border-color: transparent;
+  background: rgba(24, 33, 38, 0.92);
+  color: #fff;
 }
 
 .legend-key-swatch {
@@ -182,6 +267,20 @@ body {
   line-height: 1.35;
 }
 
+.legend-key-count {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.legend-key-item.is-active .legend-key-copy,
+.legend-key-item.is-active .legend-key-count {
+  color: rgba(255, 255, 255, 0.82);
+}
+
 .legend-filter-copy {
   margin: 12px 0 0;
   color: var(--muted);
@@ -198,6 +297,22 @@ body {
   overflow-x: auto;
   padding-bottom: 2px;
   scrollbar-width: none;
+}
+
+.top-panel::-webkit-scrollbar,
+.legend-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.top-panel::-webkit-scrollbar-thumb,
+.legend-panel::-webkit-scrollbar-thumb {
+  background: rgba(24, 33, 38, 0.22);
+  border-radius: 999px;
+}
+
+.top-panel::-webkit-scrollbar-track,
+.legend-panel::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .legend-chips::-webkit-scrollbar {
@@ -274,6 +389,12 @@ body {
   margin-bottom: 12px;
 }
 
+.popup-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .popup-pill {
   display: inline-flex;
   align-items: center;
@@ -283,6 +404,11 @@ body {
   font-size: 0.78rem;
   font-weight: 700;
   color: #fff;
+}
+
+.popup-pill-secondary {
+  background: #e7ddd0;
+  color: var(--ink);
 }
 
 .popup-list {
@@ -303,10 +429,46 @@ body {
   .top-panel {
     right: auto;
     width: min(430px, calc(100vw - 24px));
+    max-height: min(70vh, 560px);
   }
 
   .legend-panel {
     right: auto;
     width: min(520px, calc(100vw - 24px));
+    max-height: min(44vh, 420px);
+  }
+}
+
+@media (max-height: 760px) {
+  .top-panel {
+    max-height: min(46vh, 360px);
+  }
+
+  .legend-panel {
+    max-height: min(28vh, 250px);
+  }
+}
+
+@media (max-width: 520px) {
+  .top-panel,
+  .legend-panel {
+    left: 10px;
+    right: 10px;
+  }
+
+  .top-panel {
+    padding: 12px 14px;
+  }
+
+  .legend-panel {
+    padding: 12px;
+  }
+
+  .legend-key-item {
+    padding: 9px 10px;
+  }
+
+  .legend-chip {
+    padding: 9px 11px;
   }
 }

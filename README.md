@@ -59,8 +59,12 @@ The map:
 - serves a mobile-first Leaflet UI that works well on Android browsers
 - colour-codes road segments by parking rule category
 - splits opposite sides of the same road segment into separate kerbside traces instead of joining them into one line
+- lets you switch between `road sides` and a simpler `merged road segment` view
 - includes address search that jumps to the nearest coloured road segment
 - groups multiple parking zones per segment into tap-to-open details
 - reconstructs road-segment geometry from City of Melbourne on-street bay locations
 - includes a fuller legend key that explains every map colour before the filter chips
+- gives each map colour a matching filter option, plus an `All colours` reset
+- lets you tap the full legend key itself to filter by colour, not just the chip row
+- shows the active map view and active colour filter directly inside each popup
 - prints LAN URLs when the server starts, so you can open it from your Android device on the same Wi-Fi

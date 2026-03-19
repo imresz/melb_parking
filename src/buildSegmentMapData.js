@@ -181,82 +181,82 @@ function sortPointsAlongSegment(points) {
     .map(({ lat, lon }) => ({ lat, lon }));
 }
 
+function clusterProjectedPointsByAcross(projectedPoints) {
+  const sortedAcross = [...projectedPoints].sort((left, right) => left.across - right.across);
+  const minimumGapMeters = 5;
+  const clusters = [];
+  let currentCluster = [sortedAcross[0]];
+
+  for (let index = 1; index < sortedAcross.length; index += 1) {
+    const point = sortedAcross[index];
+    const previousPoint = sortedAcross[index - 1];
+    const gapMeters = point.across - previousPoint.across;
+
+    if (gapMeters >= minimumGapMeters && currentCluster.length > 0) {
+      clusters.push(currentCluster);
+      currentCluster = [point];
+      continue;
+    }
+
+    currentCluster.push(point);
+  }
+
+  if (currentCluster.length > 0) {
+    clusters.push(currentCluster);
+  }
+
+  return clusters;
+}
+
+function splitClusterByAlongGaps(cluster) {
+  const sortedAlong = [...cluster].sort((left, right) => left.along - right.along);
+  const segments = [];
+  const minimumGapMeters = 30;
+  let currentSegment = [sortedAlong[0]];
+
+  for (let index = 1; index < sortedAlong.length; index += 1) {
+    const point = sortedAlong[index];
+    const previousPoint = sortedAlong[index - 1];
+    const gapMeters = point.along - previousPoint.along;
+
+    if (gapMeters >= minimumGapMeters && currentSegment.length > 0) {
+      segments.push(currentSegment);
+      currentSegment = [point];
+      continue;
+    }
+
+    currentSegment.push(point);
+  }
+
+  if (currentSegment.length > 0) {
+    segments.push(currentSegment);
+  }
+
+  return segments;
+}
+
 function splitRoadSegmentSides(points) {
   const dedupedPoints = dedupeCoordinates(points);
 
-  if (dedupedPoints.length < 6) {
+  if (dedupedPoints.length < 3) {
     return [sortPointsAlongSegment(dedupedPoints)];
   }
 
   const projectedPoints = projectPointsToLocalAxis(dedupedPoints);
-  const sortedAcross = [...projectedPoints].sort((left, right) => left.across - right.across);
-  const minClusterSize = 2;
-  const minimumGapMeters = 5;
-
-  const prefixSums = [];
-  const prefixSquares = [];
-
-  sortedAcross.forEach((point, index) => {
-    prefixSums[index] = point.across + (prefixSums[index - 1] ?? 0);
-    prefixSquares[index] = point.across * point.across + (prefixSquares[index - 1] ?? 0);
-  });
-
-  const totalSse = (() => {
-    const total = prefixSums[prefixSums.length - 1];
-    const totalSquares = prefixSquares[prefixSquares.length - 1];
-    return totalSquares - (total * total) / sortedAcross.length;
-  })();
-
-  let bestSplitIndex = null;
-  let bestCombinedSse = Number.POSITIVE_INFINITY;
-
-  for (let index = minClusterSize - 1; index <= sortedAcross.length - minClusterSize - 1; index += 1) {
-    const leftCount = index + 1;
-    const rightCount = sortedAcross.length - leftCount;
-    const leftSum = prefixSums[index];
-    const leftSquares = prefixSquares[index];
-    const rightSum = prefixSums[prefixSums.length - 1] - leftSum;
-    const rightSquares = prefixSquares[prefixSquares.length - 1] - leftSquares;
-    const leftSse = leftSquares - (leftSum * leftSum) / leftCount;
-    const rightSse = rightSquares - (rightSum * rightSum) / rightCount;
-    const gapMeters = sortedAcross[index + 1].across - sortedAcross[index].across;
-    const combinedSse = leftSse + rightSse;
-
-    if (gapMeters < minimumGapMeters) {
-      continue;
-    }
-
-    if (totalSse - combinedSse < 18) {
-      continue;
-    }
-
-    if (combinedSse < bestCombinedSse) {
-      bestCombinedSse = combinedSse;
-      bestSplitIndex = index;
-    }
-  }
-
-  if (bestSplitIndex == null) {
-    return [sortPointsAlongSegment(dedupedPoints)];
-  }
-
-  const splitThreshold =
-    (sortedAcross[bestSplitIndex].across + sortedAcross[bestSplitIndex + 1].across) / 2;
-  const leftCluster = projectedPoints.filter((point) => point.across <= splitThreshold);
-  const rightCluster = projectedPoints.filter((point) => point.across > splitThreshold);
-
-  const clusters = [leftCluster, rightCluster]
+  const acrossClusters = clusterProjectedPointsByAcross(projectedPoints)
     .filter((cluster) => cluster.length > 0)
     .sort((left, right) => {
       const leftMean = left.reduce((sum, point) => sum + point.across, 0) / left.length;
       const rightMean = right.reduce((sum, point) => sum + point.across, 0) / right.length;
       return leftMean - rightMean;
-    })
-    .map((cluster) =>
-      [...cluster].sort((left, right) => left.along - right.along).map(({ lat, lon }) => ({ lat, lon })),
-    );
+    });
 
-  return clusters.length > 0 ? clusters : [sortPointsAlongSegment(dedupedPoints)];
+  const splitClusters = acrossClusters.flatMap((cluster) => splitClusterByAlongGaps(cluster));
+  const coordinates = splitClusters
+    .filter((cluster) => cluster.length > 0)
+    .map((cluster) => cluster.map(({ lat, lon }) => ({ lat, lon })));
+
+  return coordinates.length > 0 ? coordinates : [sortPointsAlongSegment(dedupedPoints)];
 }
 
 function chooseSegmentCategory(zoneDetails) {
@@ -275,6 +275,24 @@ function chooseSegmentCategory(zoneDetails) {
   }
 
   return 'mixed';
+}
+
+function countCategories(features) {
+  const countsByCategory = {
+    all: features.length,
+    metered: 0,
+    timed: 0,
+    loading: 0,
+    priority: 0,
+    mixed: 0,
+    other: 0,
+  };
+
+  for (const feature of features) {
+    countsByCategory[feature.category] += 1;
+  }
+
+  return countsByCategory;
 }
 
 async function fetchJson(url) {
@@ -418,31 +436,66 @@ export async function buildSegmentMapData() {
       left.traceIndex - right.traceIndex,
   );
 
-  const countsByCategory = {
-    all: segments.length,
-    metered: 0,
-    timed: 0,
-    loading: 0,
-    priority: 0,
-    mixed: 0,
-    other: 0,
-  };
+  const mergedSegments = [];
+  const mergedByRoadSegmentId = new Map();
 
   for (const segment of segments) {
-    countsByCategory[segment.category] += 1;
+    if (!mergedByRoadSegmentId.has(segment.roadSegmentId)) {
+      const merged = {
+        segmentId: String(segment.roadSegmentId),
+        roadSegmentId: segment.roadSegmentId,
+        viewType: 'merged',
+        roadSegment: segment.roadSegment,
+        streetName: segment.streetName,
+        streetFrom: segment.streetFrom,
+        streetTo: segment.streetTo,
+        zoneNumbers: segment.zoneNumbers,
+        category: segment.category,
+        categoryLabel: segment.categoryLabel,
+        hasLoadingZone: segment.hasLoadingZone,
+        zoneDetails: segment.zoneDetails,
+        coordinateGroups: [],
+        pointCount: 0,
+      };
+
+      mergedByRoadSegmentId.set(segment.roadSegmentId, merged);
+      mergedSegments.push(merged);
+    }
+
+    const merged = mergedByRoadSegmentId.get(segment.roadSegmentId);
+    merged.coordinateGroups.push(segment.coordinates);
+    merged.pointCount += segment.pointCount;
+  }
+
+  for (const merged of mergedSegments) {
+    merged.traceCount = merged.coordinateGroups.length;
   }
 
   const payload = {
     generatedAt: new Date().toISOString(),
     stats: {
-      segmentCount: segments.length,
+      roadSideCount: segments.length,
+      mergedSegmentCount: mergedSegments.length,
       zoneCount: zoneDetailsByZoneNumber.size,
     },
+    views: {
+      roadSides: {
+        featureCount: segments.length,
+        countsByCategory: countCategories(segments),
+        features: segments.map((segment) => ({
+          ...segment,
+          viewType: 'roadSides',
+        })),
+      },
+      mergedSegments: {
+        featureCount: mergedSegments.length,
+        countsByCategory: countCategories(mergedSegments),
+        features: mergedSegments,
+      },
+    },
     legend: {
-      countsByCategory,
       labels: CATEGORY_LABELS,
     },
-    segments,
   };
 
   const projectRoot = path.dirname(fileURLToPath(import.meta.url));
@@ -452,7 +505,9 @@ export async function buildSegmentMapData() {
   await mkdir(outputDirectory, { recursive: true });
   await writeFile(outputPath, JSON.stringify(payload), 'utf8');
 
-  console.log(`Generated ${payload.stats.segmentCount} coloured road segments at ${outputPath}`);
+  console.log(
+    `Generated ${payload.stats.roadSideCount} road-side traces and ${payload.stats.mergedSegmentCount} merged road segments at ${outputPath}`,
+  );
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {

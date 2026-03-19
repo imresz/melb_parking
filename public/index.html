@@ -23,6 +23,20 @@
         <h1>Melbourne Parking Zones</h1>
         <p id="status-line" class="status-line">Loading coloured road segments...</p>
         <p id="summary-line" class="summary-line"></p>
+        <div id="view-toggle" class="view-toggle" aria-label="Map view mode"></div>
+        <div class="time-controls" aria-label="Time of day controls">
+          <label class="time-control">
+            <span class="time-control-label">Day</span>
+            <select id="day-select" class="time-select" aria-label="Select day of week"></select>
+          </label>
+          <label class="time-control">
+            <span class="time-control-label">Time</span>
+            <input id="time-input" class="time-input" type="time" aria-label="Select time of day" />
+          </label>
+        </div>
+        <p id="time-status" class="search-status">
+          Colours update to match the parking rules active at the selected Melbourne day and time.
+        </p>
         <form id="search-form" class="search-form">
           <input
             id="search-input"
@@ -40,10 +54,10 @@
       <section class="panel legend-panel" aria-label="Zone colour legend">
         <div class="legend-header">
           <h2>Road Segment Colours</h2>
-          <p>Tap a segment to see zone numbers and restrictions. Use the key and filters below.</p>
+          <p>Tap a segment to see zone numbers and restrictions. Use the key and colour filters below.</p>
         </div>
         <div id="legend-key" class="legend-key"></div>
-        <p class="legend-filter-copy">Filter the visible road sides:</p>
+        <p class="legend-filter-copy">Filter by colour:</p>
         <div id="legend-chips" class="legend-chips"></div>
       </section>
     </div>
