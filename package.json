@@ -6,6 +6,9 @@
   "scripts": {
     "start": "node src/fetchParkingData.js",
     "zones": "node src/fetchParkingZoneInfo.js",
-    "lookup": "node src/fetchParkingZoneInfo.js"
+    "lookup": "node src/fetchParkingZoneInfo.js",
+    "map:build": "node src/buildSegmentMapData.js",
+    "map:serve": "node src/serveMap.js",
+    "map": "node src/startMap.js"
   }
 }

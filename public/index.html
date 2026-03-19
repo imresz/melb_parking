@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"
+    />
+    <title>Melbourne Parking Zones Map</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div id="map" aria-label="Melbourne parking zones map"></div>
+
+    <div class="chrome">
+      <header class="panel top-panel">
+        <p class="eyebrow">Android-Friendly Viewer</p>
+        <h1>Melbourne Parking Zones</h1>
+        <p id="status-line" class="status-line">Loading coloured road segments...</p>
+        <p id="summary-line" class="summary-line"></p>
+        <form id="search-form" class="search-form">
+          <input
+            id="search-input"
+            class="search-input"
+            type="search"
+            inputmode="search"
+            placeholder="Search an address, e.g. 1 Collins Street Melbourne"
+            aria-label="Search address"
+          />
+          <button class="search-button" type="submit">Find</button>
+        </form>
+        <p id="search-status" class="search-status">Search jumps to the nearest coloured road segment.</p>
+      </header>
+
+      <section class="panel legend-panel" aria-label="Zone colour legend">
+        <div class="legend-header">
+          <h2>Road Segment Colours</h2>
+          <p>Tap a segment to see zone numbers and restrictions. Use the key and filters below.</p>
+        </div>
+        <div id="legend-key" class="legend-key"></div>
+        <p class="legend-filter-copy">Filter the visible road sides:</p>
+        <div id="legend-chips" class="legend-chips"></div>
+      </section>
+    </div>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      crossorigin=""
+    ></script>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

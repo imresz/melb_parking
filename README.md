@@ -34,3 +34,33 @@ The lookup script:
 - prints a grouped plain-English summary before the detailed zone table
 - merges adjacent time windows in that summary when they touch, such as `Mon-Fri 16:00-19:00` plus `Mon-Fri 19:00-22:00` becoming `Mon-Fri 16:00-22:00`
 - falls back to the older bay restrictions dataset when you pass a bay ID that is not present in the live sensor feed
+
+## Android Map
+
+Build the mobile map data:
+
+```bash
+npm run map:build
+```
+
+Serve the Android-friendly map:
+
+```bash
+npm run map:serve
+```
+
+Or do both in one step:
+
+```bash
+npm run map
+```
+
+The map:
+- serves a mobile-first Leaflet UI that works well on Android browsers
+- colour-codes road segments by parking rule category
+- splits opposite sides of the same road segment into separate kerbside traces instead of joining them into one line
+- includes address search that jumps to the nearest coloured road segment
+- groups multiple parking zones per segment into tap-to-open details
+- reconstructs road-segment geometry from City of Melbourne on-street bay locations
+- includes a fuller legend key that explains every map colour before the filter chips
+- prints LAN URLs when the server starts, so you can open it from your Android device on the same Wi-Fi
