@@ -34,6 +34,7 @@ The lookup script:
 - prints a grouped plain-English summary before the detailed zone table
 - merges adjacent time windows in that summary when they touch, such as `Mon-Fri 16:00-19:00` plus `Mon-Fri 19:00-22:00` becoming `Mon-Fri 16:00-22:00`
 - falls back to the older bay restrictions dataset when you pass a bay ID that is not present in the live sensor feed
+<<<<<<< HEAD
 
 ## Android Map
 
@@ -111,3 +112,5 @@ npm run android:open
 8. On the phone, open `Settings` -> `Security & privacy` -> `More security & privacy` -> `Install unknown apps`.
 9. Allow the app you will open the APK from, such as `Files by Google`, to install unknown apps.
 10. Open the APK on the phone and tap `Install`.
+=======
+>>>>>>> c5dbf396b9bc279464534fe20103a7acce6dd0e5

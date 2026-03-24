@@ -190,7 +190,11 @@ async function fetchZoneSigns(zoneNumber) {
 
   const params = new URLSearchParams({
     where: `parkingzone=${zoneNumber}`,
+<<<<<<< HEAD
     limit: '50',
+=======
+    limit: '20',
+>>>>>>> c5dbf396b9bc279464534fe20103a7acce6dd0e5
   });
   const payload = await fetchJson(`${SIGN_PLATES_URL}?${params.toString()}`, {
     headers: {

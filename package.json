@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/fetchParkingData.js",
     "zones": "node src/fetchParkingZoneInfo.js",
+<<<<<<< HEAD
     "lookup": "node src/fetchParkingZoneInfo.js",
     "map:build": "node src/buildSegmentMapData.js",
     "map:serve": "node src/serveMap.js",
@@ -18,5 +19,8 @@
     "@capacitor/android": "^8.2.0",
     "@capacitor/cli": "^8.2.0",
     "@capacitor/core": "^8.2.0"
+=======
+    "lookup": "node src/fetchParkingZoneInfo.js"
+>>>>>>> c5dbf396b9bc279464534fe20103a7acce6dd0e5
   }
 }
