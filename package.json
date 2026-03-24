@@ -4,6 +4,19 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node src/fetchParkingData.js"
+    "start": "node src/fetchParkingData.js",
+    "zones": "node src/fetchParkingZoneInfo.js",
+    "lookup": "node src/fetchParkingZoneInfo.js",
+    "map:build": "node src/buildSegmentMapData.js",
+    "map:serve": "node src/serveMap.js",
+    "map": "node src/startMap.js",
+    "android:copy": "npx cap copy android",
+    "android:sync": "npx cap sync android",
+    "android:open": "npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.2.0",
+    "@capacitor/cli": "^8.2.0",
+    "@capacitor/core": "^8.2.0"
   }
 }

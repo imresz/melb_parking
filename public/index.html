@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"
+    />
+    <title>Melbourne Parking Zones Map</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div id="map" aria-label="Melbourne parking zones map"></div>
+
+    <div class="chrome">
+      <header id="top-panel" class="panel top-panel">
+        <div id="top-panel-handle" class="panel-handle" aria-hidden="true"></div>
+        <div class="panel-toolbar">
+          <div>
+            <p class="eyebrow">Android-Friendly Viewer</p>
+            <h1>Melbourne Parking Zones</h1>
+          </div>
+          <button id="top-panel-toggle" class="panel-toggle" type="button" aria-expanded="true">
+            Hide
+          </button>
+        </div>
+        <div class="panel-content">
+          <p id="status-line" class="status-line">Loading coloured road segments...</p>
+          <p id="summary-line" class="summary-line"></p>
+          <div id="view-toggle" class="view-toggle" aria-label="Map view mode"></div>
+          <div class="time-controls" aria-label="Time of day controls">
+            <label class="time-control">
+              <span class="time-control-label">Day</span>
+              <select id="day-select" class="time-select" aria-label="Select day of week"></select>
+            </label>
+            <label class="time-control">
+              <span class="time-control-label">Time</span>
+              <input id="time-input" class="time-input" type="time" aria-label="Select time of day" />
+            </label>
+          </div>
+          <p id="time-status" class="search-status">
+            Colours update to match the parking rules active at the selected Melbourne day and time.
+          </p>
+          <form id="search-form" class="search-form">
+            <input
+              id="search-input"
+              class="search-input"
+              type="search"
+              inputmode="search"
+              placeholder="Search an address, e.g. 1 Collins Street Melbourne"
+              aria-label="Search address"
+            />
+            <button class="search-button" type="submit">Find</button>
+          </form>
+          <p id="search-status" class="search-status">Search jumps to the nearest coloured road segment.</p>
+        </div>
+      </header>
+
+      <section id="legend-panel" class="panel legend-panel" aria-label="Zone colour legend">
+        <div id="legend-panel-handle" class="panel-handle" aria-hidden="true"></div>
+        <div class="panel-toolbar">
+          <div class="legend-header">
+            <h2>Road Segment Colours</h2>
+            <p>Tap a segment to see zone numbers and restrictions. Use the key and colour filters below.</p>
+          </div>
+          <button id="legend-panel-toggle" class="panel-toggle" type="button" aria-expanded="true">
+            Hide
+          </button>
+        </div>
+        <div class="panel-content">
+          <div id="legend-key" class="legend-key"></div>
+          <p class="legend-filter-copy">Filter by colour:</p>
+          <div id="legend-chips" class="legend-chips"></div>
+        </div>
+      </section>
+    </div>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      crossorigin=""
+    ></script>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

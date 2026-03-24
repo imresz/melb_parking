@@ -1,0 +1,6 @@
+{
+  "appId": "au.com.cts.melbparking",
+  "appName": "Melbourne Parking Zones",
+  "webDir": "public",
+  "bundledWebRuntime": false
+}
